@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Button } from 'antd'
 import { GoogleOutlined, MailOutlined } from '@ant-design/icons'
+import {createOrUpdateUser} from '../../functions/authFunc'
 
 const Login = ({ history }) => {
     const [email, setEmail] = useState('')
@@ -18,14 +19,34 @@ const Login = ({ history }) => {
         if(user && user.token) return history.push('/')
     }, [user, history])
 
+    const roleBaseRedirect = (res) => {
+        if (res.data.role === 'admin') {
+            history.push('/admin/dashboard')
+        } else {
+            history.push('/user/history')
+        }
+    }
+
     const handleSubmit = async e => {
         e.preventDefault()
         setLoading(true)
         try {            
-            const userData = await auth.signInWithEmailAndPassword(email, password)            
-            const idTokenResult = userData.user.getIdTokenResult()
-            dispatch({ type: 'LOGGED_IN_USER', payload: { email: userData.user.email, token: idTokenResult } })
-            history.push('/')
+            const userData = await auth.signInWithEmailAndPassword(email, password)
+            const idTokenResult = await userData.user.getIdTokenResult()
+            createOrUpdateUser(idTokenResult.token)
+                .then(res => {
+                    dispatch({
+                        type: 'LOGGED_IN_USER',
+                        payload: {
+                            name: res.data.name,
+                            email: res.data.email,
+                            token: idTokenResult.token,
+                            role: res.data.role,
+                            _id: res.data._id
+                        }
+                    })
+                    roleBaseRedirect(res)
+                })
         } catch (error) {
             console.log(error)
             setLoading(false)
@@ -36,9 +57,22 @@ const Login = ({ history }) => {
     const handleGoogleLogin = async () => {
         try {
             const userData = await auth.signInWithPopup(googleAuthProvider)
-            const idTokenResult = userData.user.getIdTokenResult()
-            dispatch({ type: 'LOGGED_IN_USER', payload: { email: userData.user.email, token: idTokenResult } })
-            history.push('/')
+            const idTokenResult = await userData.user.getIdTokenResult()
+            
+            createOrUpdateUser(idTokenResult.token)
+                .then(res => {
+                    dispatch({
+                        type: 'LOGGED_IN_USER',
+                        payload: {
+                            name: res.data.name,
+                            email: res.data.email,
+                            token: idTokenResult.token,
+                            role: res.data.role,
+                            _id: res.data._id
+                        }
+                    })
+                    roleBaseRedirect(res)
+                })
         } catch (error) {
             console.log(error)
             setLoading(false)
