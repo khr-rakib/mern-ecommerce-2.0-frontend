@@ -42,7 +42,7 @@ const Header = () => {
                 
                 
                 {user && (<>
-                    <SubMenu key="SubMenu" icon={<SettingOutlined />} title={user.email && user.email.split('@')[0] } className='float-right'>
+                    <SubMenu key="SubMenu" icon={<SettingOutlined />} title={user.email && user.email.split('@')[0] } className='ms-auto'>
                         <Menu.Item key="setting:1">Option 1</Menu.Item>
                         <Menu.Item onClick={handleLogout} icon={<LogoutOutlined/>}>Logout</Menu.Item>
                     </SubMenu>
